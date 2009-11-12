@@ -289,9 +289,11 @@ http://wiki.apache.org/solr/SchemaXml
 			fields or fields that need an index-time boost need norms.
 			termVectors: [false] set to true to store the term vector for a given field.
 			When using MoreLikeThis, fields used for similarity should be stored for 
-			best performance.
+			best performance. 
+			建议建立了一个拷贝字段，将所有的全文字段复制到一个字段中，以便进行统一的检索：
 			-->
-
+			<field name="all" type="textComplex" indexed="true" stored="false" multiValued="true"/> 
+			
 			<field name="simple" type="textSimple" indexed="true" stored="true"/>  
 			<field name="complex" type="textComplex" indexed="true" stored="true"/>  
 			<field name="text" type="textMaxWord" indexed="true" stored="true"/>  
@@ -348,7 +350,7 @@ http://wiki.apache.org/solr/SchemaXml
 			<dynamicField name="*_i"  type="sint"    indexed="true"  stored="true"/>
 			<dynamicField name="*_s"  type="string"  indexed="true"  stored="true"/>
 			<dynamicField name="*_l"  type="slong"   indexed="true"  stored="true"/>
-			<dynamicField name="*_t"  type="text"    indexed="true"  stored="true"/>
+			<dynamicField name="*_t"  type="textComplex"    indexed="true"  stored="true"/>
 			<dynamicField name="*_b"  type="boolean" indexed="true"  stored="true"/>
 			<dynamicField name="*_f"  type="sfloat"  indexed="true"  stored="true"/>
 			<dynamicField name="*_d"  type="sdouble" indexed="true"  stored="true"/>
@@ -369,15 +371,18 @@ http://wiki.apache.org/solr/SchemaXml
 		-->
 		<uniqueKey>id</uniqueKey>
 
-		<!-- field for the QueryParser to use when an explicit fieldname is absent -->
-		<defaultSearchField>text</defaultSearchField>
+		<!-- field for the QueryParser to use when an explicit fieldname is absent 
+		<defaultSearchField>text</defaultSearchField>		
+		-->
+		<defaultSearchField>all</defaultSearchField>
 
 		<!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
 		<solrQueryParser defaultOperator="OR"/>
 
 		<!-- copyField commands copy one field to another at the time a document
 		is added to the index.  It's used either to index the same field differently,
-		or to add multiple fields to the same field for easier/faster searching.  -->
+		or to add multiple fields to the same field for easier/faster searching. 
+		-->
 		<copyField source="id" dest="sku"/>
 
 		<copyField source="incubationdate_dt" dest="incubationdate_s"/>
@@ -390,7 +395,6 @@ http://wiki.apache.org/solr/SchemaXml
 		<copyField source="includes" dest="text"/>
 
 		<copyField source="manu" dest="manu_exact"/>
-
 		<copyField source="name" dest="spell"/>
 
 		<!-- Similarity is the scoring routine for each document vs. a query.
@@ -404,10 +408,15 @@ http://wiki.apache.org/solr/SchemaXml
 		<!--
 		<similarity class="com.example.solr.CustomSimilarityFactory">
 			<str name="paramkey">param value</str>
-		</similarity>
+		</similarity> 
+		并在拷贝字段结点处完成拷贝设置：
 		-->
 
 		<copyField source="text" dest="simple" />  
 		<copyField source="text" dest="complex" /> 
+
+		<copyField source="id" dest="all"/>
+		<copyField source="name" dest="all"/>
+		<copyField source="*_t" dest="all"/>
 
 	</schema>
